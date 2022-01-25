@@ -7,4 +7,6 @@
 #define PADDLE_POS_X  20
 #define PADDLE_POS_Y  (SCREEN_HEIGHT - PADDLE_HEIGHT)/2
 
+#define BALL_SIZE 15
+
 
