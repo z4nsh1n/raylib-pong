@@ -20,6 +20,8 @@ typedef struct Game {
   Paddle leftPaddle;
   Paddle rightPaddle;
   Ball ball;
+  int left_score;
+  int right_score;
 } Game;
 
 void drawPaddle(Paddle paddle){
@@ -30,6 +32,15 @@ void drawBall(Ball ball) {
   DrawRectangleRec(ball.rect, ball.color);
 }
 
+void initBall(Ball *ball){
+  ball->rect.width = BALL_SIZE;
+  ball->rect.height = BALL_SIZE;
+  ball->rect.x = (SCREEN_WIDTH - BALL_SIZE)/2;
+  ball->rect.y = (SCREEN_HEIGHT - BALL_SIZE)/2;
+  ball->color = BLACK;
+  ball->speed.x = -5;
+  ball->speed.y = 0;
+}
 void initGame(Game *game) {
   game->leftPaddle.rect.width = PADDLE_WIDTH;
   game->leftPaddle.rect.height = PADDLE_HEIGHT;
@@ -47,13 +58,11 @@ void initGame(Game *game) {
   game->rightPaddle.speed = 5;
 
   game->rightPaddle.color = BLUE;
-  game->ball.rect.width = BALL_SIZE;
-  game->ball.rect.height = BALL_SIZE;
-  game->ball.rect.x = (SCREEN_WIDTH - BALL_SIZE)/2;
-  game->ball.rect.y = (SCREEN_HEIGHT - BALL_SIZE)/2;
-  game->ball.color = BLACK;
-  game->ball.speed.x = -5;
-  game->ball.speed.y = 0;
+
+  game->left_score = 0;
+  game->right_score = 0;
+
+  initBall(&(game->ball));
 
 
 }
@@ -86,12 +95,30 @@ void updateGame(Game *game) {
   if (
       CheckCollisionRecs(game->leftPaddle.rect, game->ball.rect) ||
       CheckCollisionRecs(game->rightPaddle.rect, game->ball.rect)) {
-    game->ball.speed.x *= -1;
+    game->ball.speed.x *= -1.2;
     game->ball.speed.y += GetRandomValue(-3, 3);
   }
 
+  //check paddle positions
+  if (game->leftPaddle.rect.y <= 0) game->leftPaddle.rect.y = 0;
+  if (game->rightPaddle.rect.y <= 0) game->rightPaddle.rect.y = 0;
+  if (game->leftPaddle.rect.y >= SCREEN_HEIGHT - PADDLE_HEIGHT) game->leftPaddle.rect.y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+  if (game->rightPaddle.rect.y >= SCREEN_HEIGHT - PADDLE_HEIGHT) game->rightPaddle.rect.y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+    
+  //check score
+  if (game->ball.rect.x < PADDLE_POS_X) {
+    initBall(&game->ball);
+    game->right_score += 1;
+  } else if (game->ball.rect.x > (SCREEN_WIDTH - PADDLE_POS_X)) {
+    initBall(&game->ball);
+    game->left_score += 1;
+  }
   drawPaddle(*leftPaddle);
   drawPaddle(*rightPaddle);
+  
+  DrawText(
+      TextFormat("%d | %d", game->left_score, game->right_score)
+      , (SCREEN_WIDTH-100)/2, 20+10, 50, BLACK);
 
   game->ball.rect.x += game->ball.speed.x;
   game->ball.rect.y += game->ball.speed.y;
